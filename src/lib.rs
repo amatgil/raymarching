@@ -5,6 +5,8 @@ pub use glam::Vec3A as Vec3;
 use itertools::Itertools; // I ain't typing all that
 use indicatif::ProgressIterator;
 use indicatif::ParallelProgressIterator;
+use std::ops::Mul;
+use std::f32::consts::TAU;
 
 // ==============   Math stuff   ===============
 #[derive(Clone, Debug)]
@@ -41,7 +43,15 @@ impl Scene {
             let Some((hit_obj, min_dist)) = self.objs.iter().map(|o| (o, o.distance_from(ray.source))).min_by(|(_, a), (_, b)| a.total_cmp(b))
             else { return Self::BACKGROUND }; // No shapes, make it bg
 
-            if      min_dist <= Self::RAY_DELTA             { return hit_obj.color;    }
+            if min_dist <= Self::RAY_DELTA {
+                let shading: f32 = {
+                    let a = hit_obj.gradient_at(ray.source);
+                    let b = ray.dir;
+                    let theta = a.angle_between(b);
+                    theta / (TAU/2.0) 
+                };
+                return hit_obj.color * shading;
+            }
             else if min_dist >= Self::RAY_WONT_HIT_ANYTHING { return Self::BACKGROUND; }
 
             ray.source += (ray.dir)*min_dist;
@@ -71,15 +81,30 @@ pub struct Shape {
 #[derive(Clone, Debug, Copy)]
 #[non_exhaustive]
 pub enum ShapeKind {
-    Sphere{ radius: f32 }
+    Sphere { radius: f32 },
+    Box { dims: Vec3 }
 }
 
 impl Shape {
-    fn distance_from(&self, point: Vec3) -> f32 {
+    fn distance_from(&self, p: Vec3) -> f32 {
         match self.kind {
-            ShapeKind::Sphere { radius } => (self.pos - point).length() - radius,
+            ShapeKind::Sphere { radius } => (self.pos - p).length() - radius,
+            ShapeKind::Box { dims: b }   => {
+                let q = p.abs() - b;
+                (q.max(Vec3::ZERO)
+                 + 0.0f32.min([q.x, q.y, q.z].into_iter().max_by(|a,b| a.total_cmp(b)).unwrap()))
+                    .length()
+            }
         }
-        
+    }
+    fn gradient_at(&self, p: Vec3) -> Vec3 {
+        const h: f32 = 0.0001;
+        let f_p = self.distance_from(p); // f(p) (should be 0, is approx 0)
+        Vec3::new(
+            self.distance_from(p + h*Vec3::X) - f_p,
+            self.distance_from(p + h*Vec3::Y) - f_p,
+            self.distance_from(p + h*Vec3::Z) - f_p,
+        ).normalize()
     }
 }
 
@@ -99,6 +124,7 @@ impl Camera {
 
         let left_normal = self.dir.cross(Vec3::Z).normalize();  // Z IS UP
 
+        //         x shift (in the x-y plane) y shift (which upwards for the camera, Z)
         self.pos + (x_delta * left_normal) + (y_delta * Vec3::Z)
     }
     pub fn facing_towards(start: Vec3, end: Vec3, width: usize, height: usize) -> Self {
@@ -155,3 +181,10 @@ impl Display for Image {
     }
 }
 
+impl Mul<f32> for Pixel {
+    type Output = Self;
+    fn mul(self, v: f32) -> <Self as Mul<f32>>::Output {
+        let f = |w: u8| (w as f32 * v) as u8;
+        Pixel::new(f(self.r), f(self.g), f(self.b))
+    }
+}
