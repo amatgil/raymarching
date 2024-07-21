@@ -86,6 +86,9 @@ pub enum ShapeKind {
 }
 
 impl Shape {
+    /// Compute the minimum distance from a point to self
+    ///
+    /// Source for many of these: https://iquilezles.org/articles/distfunctions/
     fn distance_from(&self, p: Vec3) -> f32 {
         let p = self.pos - p; // Recenter, these assume we're at origin
         match self.kind {
