@@ -1,8 +1,10 @@
 
-use std::fmt::Display;
-
+use std::{fmt::Display, fs::File, io::Write, path::PathBuf};
+use rayon::prelude::*;
 pub use glam::Vec3A as Vec3;
 use itertools::Itertools; // I ain't typing all that
+use indicatif::ProgressIterator;
+use indicatif::ParallelProgressIterator;
 
 // ==============   Math stuff   ===============
 #[derive(Clone, Debug)]
@@ -46,11 +48,11 @@ impl Scene {
         }
     }
     pub fn render(&self) -> Image {
-        //let mut result = Image::new(self.cam.width, self.cam.height, Self::BACKGROUND);
 
-        let pixels = (-(self.cam.height as isize)..self.cam.height as isize)
-            .cartesian_product(-(self.cam.width as isize)..self.cam.width as isize)
+        let pixels =         (self.cam.height as isize/-2..self.cam.height as isize/2)
+            .cartesian_product(self.cam.width as isize/-2..self.cam.width as isize/2)
             .map(|(y, x)| self.shoot_ray_from_cam(x, y))
+            //.progress_count((self.cam.width*self.cam.height) as u64)
             .collect();
 
         Image { width: self.cam.width, height: self.cam.height, pixels }
@@ -130,6 +132,11 @@ impl Image {
     pub fn new(width: usize, height: usize, bg: Pixel) -> Self {
         Self { width, height, pixels: vec![bg; width*height] }
     }
+    pub fn save(&self, path: impl Into<PathBuf>) -> Result<(), ()> {
+        let mut file = File::create(path.into()).map_err(|_| ())?;
+        file.write(self.to_string().as_bytes()).map_err(|_| ())?;
+        Ok(())
+    }
 }
 
 impl Display for Pixel {
@@ -137,9 +144,10 @@ impl Display for Pixel {
         write!(f, "{} {} {}", self.r, self.g, self.b)
     }
 }
+
 impl Display for Image {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "P3\n{} {}\n255\n{}",
+        write!(f, "P3\n{} {}\n255\n{}\n",
                self.width,
                self.height,
                self.pixels.iter().map(|p| p.to_string()).collect::<Vec<String>>().join("\n"))
