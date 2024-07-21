@@ -87,8 +87,9 @@ pub enum ShapeKind {
 
 impl Shape {
     fn distance_from(&self, p: Vec3) -> f32 {
+        let p = self.pos - p; // Recenter, these assume we're at origin
         match self.kind {
-            ShapeKind::Sphere { radius } => (self.pos - p).length() - radius,
+            ShapeKind::Sphere { radius } => p.length() - radius,
             ShapeKind::Box { dims: b }   => {
                 let q = p.abs() - b;
                 (q.max(Vec3::ZERO)
@@ -128,7 +129,7 @@ impl Camera {
         self.pos + (x_delta * left_normal) + (y_delta * Vec3::Z)
     }
     pub fn facing_towards(start: Vec3, end: Vec3, width: usize, height: usize) -> Self {
-        let dir = end - start;
+        let dir = (end - start).normalize();
         Self { pos: start, dir, width, height }
     }
 }
