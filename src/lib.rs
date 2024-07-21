@@ -52,8 +52,9 @@ impl Scene {
         let pixels =         (self.cam.height as isize/-2..self.cam.height as isize/2)
             .cartesian_product(self.cam.width as isize/-2..self.cam.width as isize/2)
             .map(|(y, x)| self.shoot_ray_from_cam(x, y))
-            //.progress_count((self.cam.width*self.cam.height) as u64)
+            .progress_count((self.cam.width*self.cam.height) as u64)
             .collect();
+        println!("[INFO]: Render done, returning");
 
         Image { width: self.cam.width, height: self.cam.height, pixels }
     }

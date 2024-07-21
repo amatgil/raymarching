@@ -10,15 +10,23 @@ fn main() {
             Shape {
                 pos: Vec3::new(20.0, 0.0, 0.0),
                 kind: ShapeKind::Sphere { radius: 0.4 },
-                color: Pixel::new(255,0,0) }
+                color: Pixel::new(255,0,0)
+            },
+            Shape {
+                pos: Vec3::new(15.0, 0.2, 0.1),
+                kind: ShapeKind::Sphere { radius: 0.2 },
+                color: Pixel::new(0,255,0)
+            }
         ]
     };
 
-    //dbg!(scene.shoot_ray_from_cam(0,0));
-    //dbg!(scene.shoot_ray_from_cam(CAM_WIDTH as isize/2, CAM_HEIGHT as isize/2));
-    //dbg!(scene.shoot_ray_from_cam(CAM_WIDTH as isize/-2, CAM_HEIGHT as isize/-2));
+    println!("[INFO]: Starting render");
 
     let r = scene.render();
+
+    println!("[INFO]: Render finished, saving to file");
+
     r.save("test.ppm").unwrap();
-    //println!("{}", r.to_string());
+
+    println!("[INFO]: Render saved to file");
 }
