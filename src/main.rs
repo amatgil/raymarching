@@ -10,7 +10,7 @@ fn main() {
     let path_points = 100;
     let radius = 30.0;
     let cam_path: Vec<Vec3> = (0..path_points)
-        .map(|n| (n as f32 / (path_points-1) as f32)*TAU)
+        .map(|n| (n as f32 / path_points as f32)*TAU)
         .map(|t| Vec3::new(t.cos(), t.sin(), 10.0))
         .collect();
 
@@ -42,7 +42,7 @@ fn main() {
 
         println!("[INFO]: Render {i} finished, saving to file");
 
-        r.save(&format!("test-{:0>2}.ppm", i)).unwrap();
+        r.save(&format!("outputs/test-{:0>2}.ppm", i)).unwrap();
 
         println!("[INFO]: Render saved to file");
     }
