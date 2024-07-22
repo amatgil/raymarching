@@ -1,13 +1,22 @@
 use raymarcher::*;
 
-const CAM_WIDTH: usize  = 800; // Must be even, I think
-const CAM_HEIGHT: usize = 800;
+const CAM_WIDTH: usize  = 600; // Must be even, I think
+const CAM_HEIGHT: usize = 600;
+
+use std::f32::consts::TAU;
 
 
 fn main() {
-    for i in 0..10 {
+    let path_points = 100;
+    let radius = 30.0;
+    let cam_path: Vec<Vec3> = (0..path_points)
+        .map(|n| (n as f32 / (path_points-1) as f32)*TAU)
+        .map(|t| Vec3::new(t.cos(), t.sin(), 10.0))
+        .collect();
+
+    for (i, cp) in cam_path.into_iter().enumerate() {
         let scene = Scene {
-            cam: Camera::facing_towards(Vec3::new(-30.0, 20.0, 5.0*i as f32), Vec3::ZERO, CAM_WIDTH, CAM_HEIGHT),
+            cam: Camera::facing_towards(cp, Vec3::ZERO, CAM_WIDTH, CAM_HEIGHT),
             objs: vec![
                 Shape {
                     pos: Vec3::new(0.75, 0.0, 0.0),
