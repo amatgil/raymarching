@@ -103,7 +103,7 @@ impl Shape {
     }
     fn gradient_at(&self, p: Vec3) -> Vec3 {
         const h: f32 = 0.0001;
-        let f_p = self.distance_from(p); // f(p) (should be 0, is approx 0)
+        let f_p = self.distance_from(p); // f(p) (should be 0, is approx 0, is cheap to calculate so whatever)
         Vec3::new(
             self.distance_from(p + h*Vec3::X) - f_p,
             self.distance_from(p + h*Vec3::Y) - f_p,
@@ -126,10 +126,11 @@ impl Camera {
         let x_delta = x as f32 / self.width  as f32;
         let y_delta = y as f32 / self.height as f32;
 
-        let left_normal = self.dir.cross(Vec3::Z).normalize();  // Z IS UP
+        let left_normal = self.dir.cross(Vec3::Z).normalize();  // Z IS "UP"
+        let up_normal   = self.dir.cross(left_normal);
 
-        //         x shift (in the x-y plane) y shift (which upwards for the camera, Z)
-        self.pos + (x_delta * left_normal) + (y_delta * Vec3::Z)
+        //         x shift (in the x-y plane)    y shift (which upwards for the camera, Z)
+        self.pos + (x_delta * left_normal)      + (y_delta * up_normal)
     }
     pub fn facing_towards(start: Vec3, end: Vec3, width: usize, height: usize) -> Self {
         let dir = (end - start).normalize();
