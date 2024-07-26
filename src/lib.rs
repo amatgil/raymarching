@@ -61,6 +61,8 @@ impl Scene {
 
         let pixels =         (self.cam.height as isize/-2..self.cam.height as isize/2)
             .cartesian_product(self.cam.width as isize/-2..self.cam.width as isize/2)
+            .collect::<Vec<_>>()
+            .into_par_iter()
             .map(|(y, x)| self.shoot_ray_from_cam(x, y))
             .progress_count((self.cam.width*self.cam.height) as u64)
             .collect();
@@ -82,7 +84,8 @@ pub struct Shape {
 #[non_exhaustive]
 pub enum ShapeKind {
     Sphere { radius: f32 },
-    Box { dims: Vec3 }
+    Box { dims: Vec3 },
+    Torus { r1: f32, r2: f32 }
 }
 
 impl Shape {
@@ -98,6 +101,10 @@ impl Shape {
                 (q.max(Vec3::ZERO)
                  + 0.0f32.min([q.x, q.y, q.z].into_iter().max_by(|a,b| a.total_cmp(b)).unwrap()))
                     .length()
+            },
+            ShapeKind::Torus { r1, r2 } => {
+                let q = glam::Vec2::new(glam::Vec2::new(p.x, p.z).length()-r1 ,p.y);
+                q.length() - r2 // Circle but again
             }
         }
     }

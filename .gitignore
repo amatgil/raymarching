@@ -2,3 +2,6 @@ target/
 *.swp
 .direnv
 *.ppm
+finals
+pngs/
+*.mp4
