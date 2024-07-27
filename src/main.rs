@@ -27,7 +27,7 @@ fn main() {
             Shape {
                 pos: Vec3::new(0.0, 0.2, 0.1),
                 rot: Mat3::IDENTITY,
-                kind: ShapeKind::Sphere { radius: 0.3 },
+                kind: ShapeKind::Sphere { radius: 0.2 },
                 color: Pixel::new(0,255,0)
             },
             Shape {
@@ -37,13 +37,13 @@ fn main() {
                 color: Pixel::new(0,0,255)
             },
             Shape {
-                pos: Vec3::new(0.0, -0.2, 0.4),
+                pos: Vec3::new(0.0, 0.2, 0.4),
                 rot: Mat3::from_rotation_x(TAU/16.0),
                 kind: ShapeKind::Torus { r1: 0.1, r2: 0.1 },
                 color: Pixel::new(255, 255, 0)
             },
             Shape {
-                pos: Vec3::new(-0.3, -0.2, -0.3),
+                pos: Vec3::new(-0.3, -0.2, 0.3),
                 rot: Mat3::IDENTITY,
                 kind: ShapeKind::Ellipsoid { r: Vec3::new(0.3, 0.1, 0.2) },
                 color: Pixel::new(255, 0, 255)
