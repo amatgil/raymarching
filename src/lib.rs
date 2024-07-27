@@ -1,9 +1,10 @@
 
 use std::{fmt::Display, fs::File, io::Write, path::PathBuf};
 use rayon::prelude::*;
-pub use glam::Vec3A as Vec3;
+pub use glam::Vec3;
+pub use glam::Mat3;
+use glam::Vec2;
 use itertools::Itertools; // I ain't typing all that
-use indicatif::ProgressIterator;
 use indicatif::ParallelProgressIterator;
 use std::ops::Mul;
 use std::f32::consts::TAU;
@@ -62,10 +63,11 @@ impl Scene {
         let pixels =         (self.cam.height as isize/-2..self.cam.height as isize/2)
             .cartesian_product(self.cam.width as isize/-2..self.cam.width as isize/2)
             .collect::<Vec<_>>()
-            .into_par_iter()
+            .into_par_iter() // rayon go brrr
             .map(|(y, x)| self.shoot_ray_from_cam(x, y))
             .progress_count((self.cam.width*self.cam.height) as u64)
             .collect();
+
         println!("[INFO]: Render done, returning");
 
         Image { width: self.cam.width, height: self.cam.height, pixels }
@@ -75,6 +77,7 @@ impl Scene {
 #[derive(Clone, Debug, Copy)]
 pub struct Shape {
     pub pos: Vec3,
+    pub rot: Mat3,
     pub kind: ShapeKind,
     pub color: Pixel
     // material, ... eventually
@@ -94,6 +97,10 @@ impl Shape {
     /// Source for many of these: https://iquilezles.org/articles/distfunctions/
     fn distance_from(&self, p: Vec3) -> f32 {
         let p = self.pos - p; // Recenter, these assume we're at origin
+        let p =  self.rot*p;   // Recenter, these assume we're unrotated
+
+        // TODO: Add rotation in here
+
         match self.kind {
             ShapeKind::Sphere { radius } => p.length() - radius,
             ShapeKind::Box { dims: b }   => {
@@ -103,18 +110,23 @@ impl Shape {
                     .length()
             },
             ShapeKind::Torus { r1, r2 } => {
-                let q = glam::Vec2::new(glam::Vec2::new(p.x, p.z).length()-r1 ,p.y);
+                let q = Vec2::new(Vec2::new(p.x, p.z).length() - r1, p.y);
                 q.length() - r2 // Circle but again
             }
         }
     }
+    /// Gradient of self at point p. This function assumes that p is on the zero-boundary of the SDF
     fn gradient_at(&self, p: Vec3) -> Vec3 {
-        const h: f32 = 0.0001;
+        const DELTA: f32 = 0.0001;
+
+        // TODO: Take into account rotation in here as well
+
         let f_p = self.distance_from(p); // f(p) (should be 0, is approx 0, is cheap to calculate so whatever)
+
         Vec3::new(
-            self.distance_from(p + h*Vec3::X) - f_p,
-            self.distance_from(p + h*Vec3::Y) - f_p,
-            self.distance_from(p + h*Vec3::Z) - f_p,
+            self.distance_from(p + DELTA*Vec3::X) - f_p,
+            self.distance_from(p + DELTA*Vec3::Y) - f_p,
+            self.distance_from(p + DELTA*Vec3::Z) - f_p,
         ).normalize()
     }
 }
