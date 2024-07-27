@@ -9,7 +9,7 @@ convert:
 
 slideshow:
         just convert
-        ffmpeg -pattern_type glob -i "pngs/*.png" -c:v libx264 -r 30 output.mp4
+        ffmpeg -pattern_type glob -i "pngs/*.png" -c:v libx264 -r 24 output.mp4
 
 clean:
         rm -f outputs/*
