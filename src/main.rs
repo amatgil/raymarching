@@ -1,21 +1,21 @@
 use raymarcher::*;
 
-const CAM_WIDTH: usize  = 500; // Must be even, I think
-const CAM_HEIGHT: usize = 500;
+const CAM_WIDTH: usize  = 720; 
+const CAM_HEIGHT: usize = 720;
 
 use std::f32::consts::TAU;
 use rayon::prelude::*;
 
 
 fn main() {
-    let path_points = 150;
+    let path_points = 100;
     let radius = 40.0;
     let cam_path: Vec<Vec3> = (0..path_points)
         .map(|n| (n as f32 / path_points as f32)*TAU)
         .map(|t| Vec3::new(radius*t.cos(), radius*t.sin(), 10.0*t.sin()))
         .collect();
 
-    cam_path.into_par_iter().enumerate().map(|(i, cp)| {
+    let _ = cam_path.into_iter().enumerate().map(|(i, cp)| {
         let scene = Scene {
             cam: Camera::facing_towards(cp, Vec3::ZERO, CAM_WIDTH, CAM_HEIGHT),
             objs: vec![
@@ -51,5 +51,5 @@ fn main() {
         r.save(&format!("outputs/test-{:0>4}.ppm", i)).unwrap();
 
         println!("[INFO]: Render saved to file");
-    }).collect::<Vec<()>>();
+    }).for_each(drop);
 }
