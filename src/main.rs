@@ -42,6 +42,12 @@ fn main() {
                 kind: ShapeKind::Torus { r1: 0.1, r2: 0.1 },
                 color: Pixel::new(255, 255, 0)
             },
+            Shape {
+                pos: Vec3::new(-0.3, -0.2, -0.3),
+                rot: Mat3::IDENTITY,
+                kind: ShapeKind::Ellipsoid { r: Vec3::new(0.3, 0.1, 0.2) },
+                color: Pixel::new(255, 0, 255)
+            },
         ]
         };
 

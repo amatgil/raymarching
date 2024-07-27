@@ -88,7 +88,8 @@ pub struct Shape {
 pub enum ShapeKind {
     Sphere { radius: f32 },
     Box { dims: Vec3 },
-    Torus { r1: f32, r2: f32 }
+    Torus { r1: f32, r2: f32 },
+    Ellipsoid { r: Vec3 },
 }
 
 impl Shape {
@@ -112,6 +113,11 @@ impl Shape {
             ShapeKind::Torus { r1, r2 } => {
                 let q = Vec2::new(Vec2::new(p.x, p.z).length() - r1, p.y);
                 q.length() - r2 // Circle but again
+            },
+            ShapeKind::Ellipsoid { r } => {
+                let k0 = (p/r).length();
+                let k1 = (p/(r*r)).length();
+                k0*(k0-1.0)/k1
             }
         }
     }
